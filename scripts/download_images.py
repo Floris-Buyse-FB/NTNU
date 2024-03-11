@@ -91,7 +91,7 @@ def download_images(url_id_pairs, save_path):
             future.result()  # This will re-raise any exception caught by the `download_img` function
 
 
-def main(n_images=100):
+def main(n_images=20):
     check_directory(SCALE_FIXED_PATH)
     check_directory(SCALE_RANDOM_PATH)
     check_directory(IMG_DIR)
