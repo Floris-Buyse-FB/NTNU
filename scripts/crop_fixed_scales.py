@@ -9,22 +9,13 @@ display.clear_output()
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/classification/fixed'
-IMG_PATH_RANDOM = './images/classification/random'
-MODEL_PATH_OBB = './models/yolov8n_obb_100epochs.pt'
 MODEL_PATH_NO_OBB = './models/no_obb_best_05_03_24.pt'
 SAVE_DIR_FIXED = './images/cropped_scales/fixed'
-SAVE_DIR_RANDOM = './images/cropped_scales/random'
 RUNS_DIR = settings['runs_dir']
 NO_OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'detect\\predict\\crops\\scale_fixed')
-OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'obb\\predict')
 
-
-def create_dirs():
-    if not os.path.exists(SAVE_DIR_FIXED):
-        os.makedirs(SAVE_DIR_FIXED)
-    if not os.path.exists(SAVE_DIR_RANDOM):
-        os.makedirs(SAVE_DIR_RANDOM)
-
+if not os.path.exists(SAVE_DIR_FIXED):
+    os.makedirs(SAVE_DIR_FIXED)
 
 def crop_scale_fixed(images: list):
     model_no_obb = YOLO(MODEL_PATH_NO_OBB)
@@ -71,8 +62,6 @@ def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10
             plt.savefig(save_path, bbox_inches='tight', transparent=True)
             plt.close()
 
-
-create_dirs()
 
 all_images = os.listdir(IMG_PATH_FIXED)
 images = [os.path.join(IMG_PATH_FIXED, img) for img in all_images]
