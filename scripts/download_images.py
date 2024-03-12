@@ -2,11 +2,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from packages import log
 import pandas as pd
 import requests
+import argparse
 import random
 import json
 import os
 
-# Constants
+# CONSTANTS
 IMG_DIR = './images'
 DATA_DIR = './data'
 SCRIPT_DIR = './scripts'
@@ -19,11 +20,13 @@ SCALE_RANDOM_PATH = os.path.join(IMG_DIR, 'scale_random')
 
 
 def check_directory(path):
+    "Check if a directory exists, if not, create it."
     if not os.path.exists(path):
         os.makedirs(path)
 
 
 def get_data(url, sep):
+    "Read data from a csv file and return a pandas dataframe."
     try:
         data = pd.read_csv(url, sep=sep)
         return data
@@ -34,13 +37,14 @@ def get_data(url, sep):
 
 
 def split_data_get_ids(data, year):
+    "Split data into two groups based on a year and return the gbifIDs."
     scale_random = list(data[data['year'] > year]['gbifID'])
     scale_fixed = list(data[data['year'] <= year]['gbifID'])
     return scale_random, scale_fixed
 
 
-def get_img_json(ids, n_samples=100):
-
+def get_img_json(ids, n_samples):
+    "Get json data from the GBIF API for a list of gbifIDs."
     n_samples = min(n_samples, len(ids))
     random_list = random.sample(ids, n_samples)
     random_list = sorted(random_list)
@@ -56,6 +60,7 @@ def get_img_json(ids, n_samples=100):
 
 
 def get_img_links(img_json):
+    "Get image links from the json data."
     links = []
     for img in img_json:
         list_with_img_links = img['extensions']['http://rs.gbif.org/terms/1.0/Multimedia']
@@ -66,6 +71,7 @@ def get_img_links(img_json):
 
 
 def download_img(url_id_pair, save_path):
+    "Download an image from a url and save it to a directory. This is a helper function for download_images."
     img_url, gbif_id = url_id_pair
     try:
         response = requests.get(img_url, timeout=10)
@@ -81,6 +87,7 @@ def download_img(url_id_pair, save_path):
 
 
 def download_images(url_id_pairs, save_path):
+    "Download images from a list of url_id_pairs and save them to a directory."
     # Using ThreadPoolExecutor to parallelize downloads
     with ThreadPoolExecutor(max_workers=CPU_COUNT) as executor:
         # Create a future for each download task
@@ -91,7 +98,7 @@ def download_images(url_id_pairs, save_path):
             future.result()  # This will re-raise any exception caught by the `download_img` function
 
 
-def main(n_images=100):
+def main(n_images=22):
     check_directory(SCALE_FIXED_PATH)
     check_directory(SCALE_RANDOM_PATH)
     check_directory(IMG_DIR)
@@ -138,4 +145,7 @@ def main(n_images=100):
 
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Download images from GBIF API')
+    parser.add_argument('-n', '--n_images', type=int, default=33, help='Number of images to download for each category')
+    args = parser.parse_args()
+    main(args.n_images)
