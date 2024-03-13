@@ -5,11 +5,12 @@ from IPython.display import display, Image
 from IPython import display
 import cv2
 import matplotlib.pyplot as plt
+import numpy as np
 display.clear_output()
 
 # CONSTANTS
 IMG_PATH_RANDOM = './images/classification/random'
-MODEL_PATH_OBB = './models/yolov8n_obb_100epochs.pt'
+MODEL_PATH_OBB = './models/BEST_m_obb.pt'
 SAVE_DIR_RANDOM = './images/cropped_scales/random'
 RUNS_DIR = settings['runs_dir']
 OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'obb\\predict')
@@ -18,19 +19,12 @@ if not os.path.exists(SAVE_DIR_RANDOM):
     os.makedirs(SAVE_DIR_RANDOM)
 
 
-def crop_scale_fixed(images: list):
+def crop_scale_random(images: list):
     model_obb = YOLO(MODEL_PATH_OBB)
     # remove old runs
     shutil.rmtree(os.path.join(RUNS_DIR, 'obb'), ignore_errors=True)
     # predict images
     results_fixed = model_obb(images, conf=0.8)
-
-    # move images to save dir
-    predictions = os.listdir(OBB_PREDICT_PATH)
-    for pred in predictions:
-        if pred.endswith('.jpg'):
-            shutil.move(os.path.join(OBB_PREDICT_PATH, pred), SAVE_DIR_RANDOM)
-
     return results_fixed
 
 
@@ -67,4 +61,40 @@ def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10
 all_images = os.listdir(IMG_PATH_RANDOM)
 images = [os.path.join(IMG_PATH_RANDOM, img) for img in all_images]
 
-results = crop_scale_fixed(images)
+results = crop_scale_random(images)
+
+for result in results:
+    image_path = result.path
+    image_name = image_path.split('\\')[-1]
+    bbox = result.obb.xyxyxyxy[0].tolist()
+
+    # Load the image
+    image = cv2.imread(image_path)
+
+    # Define the quadrilateral
+    quadrilateral = np.array(result.obb.xyxyxyxy[0])
+
+    # Compute axis aligned bounding box of the quadrilateral
+    x, y, w, h = cv2.boundingRect(quadrilateral)
+
+    # Crop the image
+    cropped_image = image[y:y + h, x:x + w]
+
+    # Save the result
+    cv2.imwrite(os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg')), cropped_image)
+
+    # Move original image
+    shutil.move(image_path, os.path.join(SAVE_DIR_RANDOM, image_name))
+
+    # Add grid to the image
+    load_image(os.path.join(SAVE_DIR_RANDOM, image_name), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name))
+
+    # Add grid to the cropped image
+    try:
+        load_image(os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg')), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg')))
+    except:
+        pass
+    
+# Remove old directory
+shutil.rmtree(OBB_PREDICT_PATH, ignore_errors=True)
+shutil.rmtree(IMG_PATH_RANDOM, ignore_errors=True)

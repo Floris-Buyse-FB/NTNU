@@ -9,7 +9,7 @@ display.clear_output()
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/classification/fixed'
-MODEL_PATH_NO_OBB = './models/no_obb_best_05_03_24.pt'
+MODEL_PATH_NO_OBB = './models/BEST_no_obb.pt'
 SAVE_DIR_FIXED = './images/cropped_scales/fixed'
 RUNS_DIR = settings['runs_dir']
 NO_OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'detect\\predict\\crops\\scale_fixed')

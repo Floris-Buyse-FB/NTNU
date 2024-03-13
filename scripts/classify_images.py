@@ -8,7 +8,7 @@ display.clear_output()
 # CONSTANTS
 IMG_PATH_FIXED = './images/scale_fixed'
 IMG_PATH_RANDOM = './images/scale_random'
-MODEL_PATH_OBB = './models/yolov8n_obb_100epochs.pt'
+MODEL_PATH_OBB = './models/classify_scale_nano.pt'
 CLASSIFICATION_DIR = './images/classification'
 
 # CREATE CLASSIFICATION DIR
