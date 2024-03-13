@@ -14,8 +14,11 @@ CLASSIFICATION_DIR = './images/classification'
 # CREATE CLASSIFICATION DIR
 if not os.path.exists(CLASSIFICATION_DIR):
     os.makedirs(CLASSIFICATION_DIR)
+if not os.path.exists(os.path.join(CLASSIFICATION_DIR, 'fixed')):
     os.makedirs(os.path.join(CLASSIFICATION_DIR, 'fixed'))
+if not os.path.exists(os.path.join(CLASSIFICATION_DIR, 'random')):
     os.makedirs(os.path.join(CLASSIFICATION_DIR, 'random'))
+if not os.path.exists(os.path.join(CLASSIFICATION_DIR, 'no_class')):
     os.makedirs(os.path.join(CLASSIFICATION_DIR, 'no_class'))
 
 # LOAD MODELS
