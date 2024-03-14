@@ -7,6 +7,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from packages import log
+import torch
 display.clear_output()
 
 # CONSTANTS
@@ -29,7 +30,7 @@ def crop_scale_random(images: list):
     # remove old runs
     shutil.rmtree(os.path.join(RUNS_DIR, 'obb'), ignore_errors=True)
     # predict images
-    results_fixed = model_obb(images, conf=0.8)
+    results_fixed = model_obb(images, conf=0.7)
     return results_fixed
 
 
@@ -63,6 +64,26 @@ def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10
             plt.close()
 
 
+def distance(p1, p2):
+    """Calculate the Euclidean distance between two points."""
+    return ((p1 - p2) ** 2).sum().sqrt()
+
+
+def width_length_difference(box):
+    """Calculate the width and length of a bounding box and return their difference."""
+    # Calculate lengths of all sides: AB, BC, CD, DA
+    sides = torch.tensor([
+        distance(box[0], box[1]),
+        distance(box[1], box[2]),
+        distance(box[2], box[3]),
+        distance(box[3], box[0])
+    ])
+    # The length is the maximum of the four sides, and width is the second maximum (considering a rotated box)
+    length, width = sides.topk(2).values
+    # Return the absolute difference between length and width
+    return abs(length - width)
+
+
 try:
     all_images = os.listdir(IMG_PATH_RANDOM)
     images = [os.path.join(IMG_PATH_RANDOM, img) for img in all_images]
@@ -76,13 +97,19 @@ for result in results:
     try:
         image_path = result.path
         image_name = image_path.split('\\')[-1]
-        bbox = result.obb.xyxyxyxy[0].tolist()
+
+        if len(result.obb.xyxyxyxy) > 1:
+            differences = torch.tensor([width_length_difference(box) for box in result.obb.xyxyxyxy])
+            box_with_largest_difference_index = differences.argmax().item()
+            bbox = result.obb.xyxyxyxy[box_with_largest_difference_index]
+        else:
+            bbox = result.obb.xyxyxyxy[0]
 
         # Load the image
         image = cv2.imread(image_path)
 
         # Define the quadrilateral
-        quadrilateral = np.array(result.obb.xyxyxyxy[0])
+        quadrilateral = np.array(bbox)
 
         # Compute axis aligned bounding box of the quadrilateral
         x, y, w, h = cv2.boundingRect(quadrilateral)
