@@ -1,10 +1,6 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from packages import log
-import pandas as pd
 import requests
 import argparse
-import random
-import json
 import os
 
 # CONSTANTS
@@ -15,8 +11,7 @@ MODEL_DIR = './models'
 
 CPU_COUNT = os.cpu_count()
 
-SCALE_FIXED_PATH = os.path.join(IMG_DIR, 'scale_fixed')
-SCALE_RANDOM_PATH = os.path.join(IMG_DIR, 'scale_random')
+SAVE_PATH = os.path.join(IMG_DIR, 'test')
 
 
 def check_directory(path):
@@ -57,8 +52,7 @@ def download_img(url_id_pair, save_path):
 
 
 def main(id):
-    check_directory(SCALE_FIXED_PATH)
-    check_directory(SCALE_RANDOM_PATH)
+    check_directory(SAVE_PATH)
     check_directory(IMG_DIR)
     check_directory(DATA_DIR)
 
@@ -79,7 +73,7 @@ def main(id):
 
     try:
         for link in img_links:
-            download_img(link, SCALE_FIXED_PATH)
+            download_img(link, SAVE_PATH)
     except Exception as e:
         log(f'Error downloading image: {e}')
         print('Something went wrong, check the log file for more information')
