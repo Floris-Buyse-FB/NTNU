@@ -91,7 +91,7 @@ except Exception as e:
 # adds grid to images
 try:
     for idx, result in enumerate(results):
-        load_image(result.path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_FIXED, result.path.split('\\')[-1]))
+        load_image(result.path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_FIXED, result.path.split('\\')[-1].replace('.jpg', '_grid.jpg')))
 except Exception as e:
     log(f'Error adding grid to images: {e}')
     print('Something went wrong, check the log file for more information')

@@ -65,9 +65,44 @@ echo ==============================================
 echo = Cropped random scales images successfully. =
 echo ==============================================
 
-REM Deactivate environment
-call .venv\Scripts\deactivate.bat
+REM Initial cropping with confidence = 0.7
+python ./scripts/crop_random_v2.py -c=0.7
+IF %ERRORLEVEL% NEQ 0 (
+    echo =====================================================
+    echo = Error cropping random undetected scales. Exiting. =
+    echo =====================================================
+    exit /b %ERRORLEVEL%
+)
+echo ==================================================
+echo = Cropped random undetected scales successfully. =
+echo ==================================================
 
+REM Initial cropping with confidence = 0.6
+python ./scripts/crop_random_v2.py -c=0.6
+IF %ERRORLEVEL% NEQ 0 (
+    echo =====================================================
+    echo = Error cropping random undetected scales. Exiting. =
+    echo =====================================================
+    exit /b %ERRORLEVEL%
+)
+echo ==================================================
+echo = Cropped random undetected scales successfully. =
+echo ==================================================
+
+REM Initial cropping with confidence = 0.5
+python ./scripts/crop_random_v2.py -c=0.5
+IF %ERRORLEVEL% NEQ 0 (
+    echo =====================================================
+    echo = Error cropping random undetected scales. Exiting. =
+    echo =====================================================
+    exit /b %ERRORLEVEL%
+)
+echo ==================================================
+echo = Cropped random undetected scales successfully. =
+echo ==================================================
+
+REM Deactivate environment and finish
+call .venv\Scripts\deactivate.bat
 echo ===============================
 echo = Script execution completed. =
 echo ===============================

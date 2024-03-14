@@ -124,7 +124,7 @@ for result in results:
         shutil.move(image_path, os.path.join(SAVE_DIR_RANDOM, image_name))
 
         # Add grid to the image
-        load_image(os.path.join(SAVE_DIR_RANDOM, image_name), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name))
+        load_image(os.path.join(SAVE_DIR_RANDOM, image_name), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_grid.jpg')))
 
         # Add grid to the cropped image
         try:
