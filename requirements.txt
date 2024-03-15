@@ -3,3 +3,5 @@ requests
 ultralytics
 numpy
 roboflow
+opencv-python
+matplotlib

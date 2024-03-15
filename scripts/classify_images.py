@@ -1,10 +1,7 @@
 from ultralytics import YOLO, settings
 import os
 import shutil
-from IPython.display import display, Image
-from IPython import display
 from packages import log
-display.clear_output()
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/scale_fixed'

@@ -1,19 +1,19 @@
 from ultralytics import YOLO, settings
 import os
 import shutil
-from IPython.display import display, Image
-from IPython import display
 import cv2
 import matplotlib.pyplot as plt
 from packages import log
-display.clear_output()
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/classification/fixed'
 MODEL_PATH_NO_OBB = './models/BEST_no_obb.pt'
 SAVE_DIR_FIXED = './images/cropped_scales/fixed'
+
+settings.update({'runs_dir': '/home/floris/projects/NTNU/models/runs'})
 RUNS_DIR = settings['runs_dir']
-NO_OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'detect\\predict\\crops\\scale_fixed')
+
+NO_OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'detect/predict/crops/scale_fixed')
 
 try:
     if not os.path.exists(SAVE_DIR_FIXED):
@@ -22,6 +22,7 @@ except OSError as e:
     log(f'Error: {e}')
     print('Something went wrong, check the log file for more information')
 
+
 def crop_scale_fixed(images: list):
     model_no_obb = YOLO(MODEL_PATH_NO_OBB)
     # remove old runs
@@ -29,11 +30,19 @@ def crop_scale_fixed(images: list):
     # predict images
     results_fixed = model_no_obb(images, conf=0.8, save_crop=True)
 
-    # move images to save dir
+    # rename and move images to save dir
     predictions = os.listdir(NO_OBB_PREDICT_PATH)
     for pred in predictions:
-        if pred.endswith('.jpg'):
-            shutil.move(os.path.join(NO_OBB_PREDICT_PATH, pred), SAVE_DIR_FIXED)
+        if pred.endswith('.jpg') and 'label' not in pred:
+            image_name = pred.replace('.jpg', '_scale_only.jpg')
+            os.rename(os.path.join(NO_OBB_PREDICT_PATH, pred), os.path.join(NO_OBB_PREDICT_PATH, image_name))
+            shutil.move(os.path.join(NO_OBB_PREDICT_PATH, image_name), SAVE_DIR_FIXED)
+        else:
+            for idx, result in enumerate(results_fixed):
+                if idx == 0:
+                    os.rename(os.path.join(SAVE_DIR_FIXED, 'labels.jpg'), os.path.join(SAVE_DIR_FIXED, result.path.split("/")[-1].replace('.jpg', '_scale_only.jpg')))
+                else:
+                    os.rename(os.path.join(SAVE_DIR_FIXED, f'labels{idx+1}.jpg'), os.path.join(SAVE_DIR_FIXED, result.path.split("/")[-1].replace('.jpg', '_scale_only.jpg')))
 
     return results_fixed
 
@@ -70,28 +79,17 @@ def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10
 
 try:
     all_images = os.listdir(IMG_PATH_FIXED)
-    images = [os.path.join(IMG_PATH_FIXED, img) for img in all_images]
+    images = [os.path.join(IMG_PATH_FIXED, img).replace('\\', '/') for img in all_images]
 
     results = crop_scale_fixed(images)
 except Exception as e:
     log(f'Error cropping images: {e}')
     print('Something went wrong, check the log file for more information')
 
-# rename crops
-try:
-    for idx, result in enumerate(results):
-        if idx == 0:
-            os.rename(os.path.join(SAVE_DIR_FIXED, 'labels.jpg'), os.path.join(SAVE_DIR_FIXED, result.path.split("\\")[-1].replace('.jpg', '') + '_scale_only.jpg'))
-        else:
-            os.rename(os.path.join(SAVE_DIR_FIXED, f'labels{idx+1}.jpg'), os.path.join(SAVE_DIR_FIXED, result.path.split("\\")[-1].replace('.jpg', '') + '_scale_only.jpg'))
-except Exception as e:
-    log(f'Error renaming crops: {e}')
-    print('Something went wrong, check the log file for more information')
-
 # adds grid to images
 try:
     for idx, result in enumerate(results):
-        load_image(result.path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_FIXED, result.path.split('\\')[-1].replace('.jpg', '_grid.jpg')))
+        load_image(result.path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_FIXED, result.path.split('/')[-1].replace('.jpg', '_grid.jpg')))
 except Exception as e:
     log(f'Error adding grid to images: {e}')
     print('Something went wrong, check the log file for more information')

@@ -1,21 +1,21 @@
 from ultralytics import YOLO, settings
 import os
 import shutil
-from IPython.display import display, Image
-from IPython import display
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from packages import log
 import torch
-display.clear_output()
 
 # CONSTANTS
 IMG_PATH_RANDOM = './images/classification/random'
 MODEL_PATH_OBB = './models/BEST_m_obb.pt'
 SAVE_DIR_RANDOM = './images/cropped_scales/random'
+
+settings.update({'runs_dir': './models/runs'})
 RUNS_DIR = settings['runs_dir']
-OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'obb\\predict')
+
+OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'obb/predict')
 
 try:
     if not os.path.exists(SAVE_DIR_RANDOM):
@@ -96,7 +96,7 @@ except Exception as e:
 for result in results:
     try:
         image_path = result.path
-        image_name = image_path.split('\\')[-1]
+        image_name = image_path.split('/')[-1]
 
         if len(result.obb.xyxyxyxy) > 1:
             differences = torch.tensor([width_length_difference(box) for box in result.obb.xyxyxyxy])
@@ -109,7 +109,11 @@ for result in results:
         image = cv2.imread(image_path)
 
         # Define the quadrilateral
-        quadrilateral = np.array(bbox)
+        # check for cuda
+        if torch.cuda.is_available():
+            quadrilateral = np.array(bbox.cpu())
+        else:
+            quadrilateral = np.array(bbox)
 
         # Compute axis aligned bounding box of the quadrilateral
         x, y, w, h = cv2.boundingRect(quadrilateral)
