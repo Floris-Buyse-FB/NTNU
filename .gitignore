@@ -163,6 +163,7 @@ cython_debug/
 /images/scale_random
 /images/classification
 /images/cropped_scales
+/images/test
 
 /data/herbarium_data.csv
 /data/herbarium_original_data.csv
