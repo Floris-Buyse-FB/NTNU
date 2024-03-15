@@ -96,6 +96,14 @@ except Exception as e:
     log(f'Error adding grid to images: {e}')
     print('Something went wrong, check the log file for more information')
 
+# Move original images to save dir
+try:
+    for img in images:
+        shutil.move(img, SAVE_DIR_FIXED)
+except Exception as e:
+    log(f'Error moving original images: {e}')
+    print('Something went wrong, check the log file for more information')
+
 try:
     for scale in os.listdir(SAVE_DIR_FIXED):
         if scale.endswith('_scale_only.jpg'):
