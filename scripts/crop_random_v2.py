@@ -67,11 +67,11 @@ def predict_and_crop_image(image_path, conf):
     model_obb = YOLO(MODEL_PATH_OBB)
     result = model_obb(image_path, conf=conf)
     if len(result[0].obb.xyxyxyxy) > 1:
-        differences = torch.tensor([width_length_difference(box) for box in result[0].obb.xyxyxyxy])
+        differences = torch.tensor([width_length_difference(box) for box in result[0].obb.xyxyxyxy.cpu()])
         box_with_largest_difference_index = differences.argmax().item()
-        bbox = result[0].obb.xyxyxyxy[box_with_largest_difference_index]
+        bbox = result[0].obb.xyxyxyxy[box_with_largest_difference_index].cpu().numpy()
     else:
-        bbox = result[0].obb.xyxyxyxy[0]
+        bbox = result[0].obb.xyxyxyxy[0].cpu().numpy()
     image = cv2.imread(image_path)
     quadrilateral = np.array(bbox)
     x, y, w, h = cv2.boundingRect(quadrilateral)

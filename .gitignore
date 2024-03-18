@@ -159,11 +159,8 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-/images/scale_fixed
-/images/scale_random
-/images/classification
-/images/cropped_scales
-/images/test
+/images/
+
 
 /data/herbarium_data.csv
 /data/herbarium_original_data.csv
