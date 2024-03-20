@@ -5,3 +5,4 @@ numpy
 roboflow
 opencv-python
 matplotlib
+scikit-learn
