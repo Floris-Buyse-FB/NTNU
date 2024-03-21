@@ -7,7 +7,7 @@ from packages import log
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/classification/fixed'
-MODEL_PATH_NO_OBB = './models/BEST_no_obb.pt'
+MODEL_PATH_NO_OBB = './models/crop_fixed_scale.pt'
 SAVE_DIR_FIXED = './images/cropped_scales/fixed'
 # settings.update({'runs_dir': '/home/floris/projects/NTNU/models/runs'})
 RUNS_DIR = settings['runs_dir']

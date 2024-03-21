@@ -9,7 +9,7 @@ import torch
 
 # CONSTANTS
 IMG_PATH_RANDOM = './images/classification/random'
-MODEL_PATH_OBB = './models/BEST_m_obb.pt'
+MODEL_PATH_OBB = './models/crop_random_scale.pt'
 SAVE_DIR_RANDOM = './images/cropped_scales/random'
 RUNS_DIR = settings['runs_dir']
 OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'obb/predict')

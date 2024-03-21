@@ -10,7 +10,7 @@ import argparse
 
 # CONSTANTS
 SAVE_DIR_RANDOM = './images/cropped_scales/random'
-MODEL_PATH_OBB = './models/BEST_m_obb.pt'
+MODEL_PATH_OBB = './models/crop_random_scale.pt.pt'
 
 
 def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10, x_rotation=0, y_rotation=0, save=False, save_path=None):
