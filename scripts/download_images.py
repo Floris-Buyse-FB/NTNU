@@ -59,14 +59,25 @@ def get_img_json(ids, n_samples):
     return results
 
 
+def number_to_letter(number):
+    if 1 <= number <= 26:
+        return chr(number + 96)
+    else:
+        return "Number out of range"
+
+
 def get_img_links(img_json):
     "Get image links from the json data."
     links = []
     for img in img_json:
         list_with_img_links = img['extensions']['http://rs.gbif.org/terms/1.0/Multimedia']
         gbifId = img['gbifID']
-        for link in list_with_img_links:
-            links.append((link['http://purl.org/dc/terms/identifier'], gbifId))
+        for idx, link in enumerate(list_with_img_links):
+            if len(list_with_img_links) > 1:
+                name = f'{gbifId}_{number_to_letter(idx+1)}'
+                links.append((link['http://purl.org/dc/terms/identifier'], name))
+            else:
+                links.append((link['http://purl.org/dc/terms/identifier'], gbifId))
     return links
 
 
