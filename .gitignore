@@ -165,6 +165,7 @@ cython_debug/
 /data/herbarium_data.csv
 /data/herbarium_original_data.csv
 /data/datasets/
+/data/processed
 
 /models/runs
 

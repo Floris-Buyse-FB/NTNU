@@ -2,6 +2,7 @@ from ultralytics import YOLO, settings
 import os
 import shutil
 from packages import log
+import torch
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/scale_fixed'
@@ -42,7 +43,7 @@ def remove_old_runs():
 
 def predict_images(model, images):
     try:
-        return model(images, conf=0.8)  # conf=0.8: only images with a confidence of 80% or more
+        return model(images, conf=0.8, verbose=False)  # conf=0.8: only images with a confidence of 80% or more
     except Exception as e:
         log(f'Error predicting images: {e}')
         print('Something went wrong, check the log file for more information')
@@ -78,8 +79,14 @@ def main():
     all_images_random = get_image_paths(IMG_PATH_RANDOM)
     combined_images = all_images_fixed + all_images_random
     remove_old_runs()
-    results = predict_images(model_obb, combined_images)
-    move_images(results)
+    if len(combined_images) > 50:
+        for i in range(0, len(combined_images), 50):
+            results = predict_images(model_obb, combined_images[i:i+50])
+            move_images(results)
+            torch.cuda.empty_cache()
+    else:
+        results = predict_images(model_obb, combined_images)
+        move_images(results)
     remove_old_directories()
 
 if __name__ == '__main__':
