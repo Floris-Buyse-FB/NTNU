@@ -1,8 +1,12 @@
+import sys
+sys.path.append('/home/floris/Projects/NTNU/packages')
+
 from ultralytics import YOLO, settings
 import os
 import shutil
 from packages import log
 import torch
+
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/scale_fixed'

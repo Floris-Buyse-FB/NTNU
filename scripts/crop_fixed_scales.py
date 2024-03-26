@@ -9,7 +9,7 @@ from packages import log
 IMG_PATH_FIXED = './images/classification/fixed'
 MODEL_PATH_NO_OBB = './models/crop_fixed_scale.pt'
 SAVE_DIR_FIXED = './images/cropped_scales/fixed'
-settings.update({'runs_dir': rf'C:\Users\buyse\Workspace\NTNU\models\runs'})
+settings.update({'runs_dir': rf'/home/floris/Projects/NTNU/models/runs'})
 RUNS_DIR = settings['runs_dir']
 NO_OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'detect/predict/crops/scale_fixed')
 
@@ -23,7 +23,9 @@ def create_directory(directory):
 def crop_scale_fixed(images: list):
     model_no_obb = YOLO(MODEL_PATH_NO_OBB)
     # remove old runs
-    shutil.rmtree(os.path.join(RUNS_DIR, 'detect/predict'), ignore_errors=True)
+    old_run_path = os.path.join(RUNS_DIR, 'detect/predict')
+    if os.path.exists(old_run_path):
+        shutil.rmtree(old_run_path, ignore_errors=True)
     # predict images
     results_fixed = model_no_obb(images, conf=0.8, save_crop=True, verbose=True)
     # rename and move images to save dir

@@ -1,3 +1,6 @@
+import sys
+sys.path.append('/home/floris/Projects/NTNU/packages')
+
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from packages import log
 import pandas as pd

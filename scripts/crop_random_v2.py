@@ -10,37 +10,37 @@ import argparse
 
 # CONSTANTS
 SAVE_DIR_RANDOM = './images/cropped_scales/random'
-MODEL_PATH_OBB = './models/crop_random_scale.pt.pt'
+MODEL_PATH_OBB = './models/crop_random_scale.pt'
 
 
-def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10, x_rotation=0, y_rotation=0, save=False, save_path=None):
-    # Load the image
-    image = cv2.imread(image_path)
+# def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10, x_rotation=0, y_rotation=0, save=False, save_path=None):
+#     # Load the image
+#     image = cv2.imread(image_path)
 
-    # Convert the image from BGR to RGB (matplotlib uses RGB)
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+#     # Convert the image from BGR to RGB (matplotlib uses RGB)
+#     image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-    # Create a figure with a specific size
-    plt.figure(figsize=fig_size)
+#     # Create a figure with a specific size
+#     plt.figure(figsize=fig_size)
 
-    # Show the image
-    plt.imshow(image_rgb)
+#     # Show the image
+#     plt.imshow(image_rgb)
 
-    if grid:
-        # Add grid lines to the image for easier measurement
-        plt.grid(color='r', linestyle='-', linewidth=0.5)
+#     if grid:
+#         # Add grid lines to the image for easier measurement
+#         plt.grid(color='r', linestyle='-', linewidth=0.5)
 
-        # Optionally, you can customize the ticks to match your image's scale
-        plt.xticks(range(0, image_rgb.shape[1], x_ticks), rotation=x_rotation)  # Adjust the spacing as needed
-        plt.yticks(range(0, image_rgb.shape[0], y_ticks), rotation=y_rotation)  # Adjust the spacing as needed
+#         # Optionally, you can customize the ticks to match your image's scale
+#         plt.xticks(range(0, image_rgb.shape[1], x_ticks), rotation=x_rotation)  # Adjust the spacing as needed
+#         plt.yticks(range(0, image_rgb.shape[0], y_ticks), rotation=y_rotation)  # Adjust the spacing as needed
 
-    if save:
-        if save_path is None:
-            plt.savefig(image_path.split('/')[-1], bbox_inches='tight', transparent=True)
-            plt.close()
-        else:
-            plt.savefig(save_path, bbox_inches='tight', transparent=True)
-            plt.close()
+#     if save:
+#         if save_path is None:
+#             plt.savefig(image_path.split('/')[-1], bbox_inches='tight', transparent=True)
+#             plt.close()
+#         else:
+#             plt.savefig(save_path, bbox_inches='tight', transparent=True)
+#             plt.close()
 
 
 def distance(p1, p2):
@@ -87,7 +87,7 @@ def predict_and_crop_image(image_path, conf):
     cropped_image_path = os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg'))
     cv2.imwrite(cropped_image_path, cropped_image)
     print(f'Saved cropped image to {cropped_image_path}')
-    load_image(cropped_image_path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only_grid.jpg')))
+    # load_image(cropped_image_path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only_grid.jpg')))
 
 
 def main(conf):

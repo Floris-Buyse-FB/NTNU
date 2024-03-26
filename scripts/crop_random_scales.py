@@ -26,7 +26,7 @@ def crop_scale_random(images: list):
     # remove old runs
     shutil.rmtree(os.path.join(RUNS_DIR, 'obb'), ignore_errors=True)
     # predict images
-    results_fixed = model_obb(images, conf=0.7)
+    results_fixed = model_obb(images, conf=0.7, verbose=False)
     return results_fixed
 
 def load_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10, x_rotation=0, y_rotation=0, save=False, save_path=None):
@@ -91,13 +91,13 @@ def process_results(results):
             cv2.imwrite(os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg')), cropped_image)
             # Move original image
             shutil.move(image_path, os.path.join(SAVE_DIR_RANDOM, image_name))
-            # Add grid to the image
-            load_image(os.path.join(SAVE_DIR_RANDOM, image_name), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_grid.jpg')))
-            # Add grid to the cropped image
-            try:
-                load_image(os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg')), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only_grid.jpg')))
-            except:
-                pass
+            # # Add grid to the image
+            # load_image(os.path.join(SAVE_DIR_RANDOM, image_name), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_grid.jpg')))
+            # # Add grid to the cropped image
+            # try:
+            #     load_image(os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg')), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only_grid.jpg')))
+            # except:
+            #     pass
         except Exception as e:
             log(f'Error cropping images: {e}')
             print('Something went wrong, check the log file for more information')
