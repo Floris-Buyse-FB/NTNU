@@ -1,4 +1,4 @@
-from packages import log
+from packages import log, check_directory, number_to_letter
 import requests
 import argparse
 import os
@@ -14,22 +14,9 @@ CPU_COUNT = os.cpu_count()
 SAVE_PATH = os.path.join(IMG_DIR, 'test')
 
 
-def check_directory(path):
-    "Check if a directory exists, if not, create it."
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
 def get_img_json(id):
     result = requests.get(f"https://api.gbif.org/v1/occurrence/{id}").json()
     return result
-
-
-def number_to_letter(number):
-    if 1 <= number <= 26:
-        return chr(number + 96)
-    else:
-        return "Number out of range"
 
 
 def get_img_links(img_json):

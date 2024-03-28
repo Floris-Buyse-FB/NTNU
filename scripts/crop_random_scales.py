@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from packages import log
 import torch
+import argparse
 
 # CONSTANTS
 IMG_PATH_RANDOM = './images/classification/random'
@@ -102,14 +103,14 @@ def process_results(results):
             log(f'Error cropping images: {e}')
             print('Something went wrong, check the log file for more information')
 
-def main():
+def main(batch_size=22):
     create_directory(SAVE_DIR_RANDOM)
     try:
         all_images = os.listdir(IMG_PATH_RANDOM)
         images = [os.path.join(IMG_PATH_RANDOM, img) for img in all_images]
-        if len(images) > 50:
-            for i in range(0, len(images), 50):
-                batch = images[i:i+50]
+        if len(images) > batch_size:
+            for i in range(0, len(images), batch_size):
+                batch = images[i:i+batch_size]
                 results = crop_scale_random(batch)
                 process_results(results)
         else:
@@ -121,10 +122,13 @@ def main():
     # Remove old directory
     try:
         shutil.rmtree(OBB_PREDICT_PATH, ignore_errors=True)
-        shutil.rmtree(IMG_PATH_RANDOM, ignore_errors=True)
+        # shutil.rmtree(IMG_PATH_RANDOM, ignore_errors=True)
     except Exception as e:
         log(f'Error removing old images: {e}')
         print('Something went wrong, check the log file for more information')
 
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Crop random scale images')
+    parser.add_argument('-b', '--batch_size', type=int, default=22, help='Number of images to process at once')
+    args = parser.parse_args()
+    main(args.batch_size)

@@ -4,6 +4,7 @@ import shutil
 import cv2
 import matplotlib.pyplot as plt
 from packages import log
+import argparse
 
 # CONSTANTS
 IMG_PATH_FIXED = './images/classification/fixed'
@@ -69,16 +70,15 @@ def load_and_save_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y
     plt.savefig(save_path, bbox_inches='tight', transparent=True)
     plt.close()
 
-def process_images():
+def process_images(batch_size=22):
     create_directory(SAVE_DIR_FIXED)
     
     try:
         all_images = os.listdir(IMG_PATH_FIXED)
         images = [os.path.join(IMG_PATH_FIXED, img).replace('\\', '/') for img in all_images]
-        if len(images) > 50:
-            # predict in batches of 50
-            for i in range(0, len(images), 50):
-                batch = images[i:i+50]
+        if len(images) > batch_size:
+            for i in range(0, len(images), batch_size):
+                batch = images[i:i+batch_size]
                 crop_scale_fixed(batch)
         else:
             crop_scale_fixed(images)
@@ -121,4 +121,7 @@ def process_images():
         print('Something went wrong, check the log file for more information')
 
 if __name__ == '__main__':
-    process_images()
+    parser = argparse.ArgumentParser(description='Crop fixed scale images')
+    parser.add_argument('-b', '--batch_size', type=int, default=22, help='Number of images to process at once')
+    args = parser.parse_args()
+    process_images(args.batch_size)

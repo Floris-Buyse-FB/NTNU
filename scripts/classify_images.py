@@ -1,97 +1,77 @@
-import sys
-sys.path.append('/home/floris/Projects/NTNU/packages')
-
-from ultralytics import YOLO, settings
-import os
+from packages import log, check_directory, get_image_paths, \
+                     remove_old_runs, remove_old_directories, \
+                     load_model, predict
 import shutil
-from packages import log
-import torch
+import os
 
 
 # CONSTANTS
-IMG_PATH_FIXED = './images/scale_fixed'
-IMG_PATH_RANDOM = './images/scale_random'
-MODEL_PATH_OBB = './models/classify_scale_nano.pt'
+IMG_PATH = './images/gbif_images'
 CLASSIFICATION_DIR = './images/classification'
+CD_FIXED = os.path.join(CLASSIFICATION_DIR, 'fixed')
+CD_RANDOM = os.path.join(CLASSIFICATION_DIR, 'random')
+CD_NO_CLASS = os.path.join(CLASSIFICATION_DIR, 'no_class')
+FILENAME = os.path.basename(__file__)
 
-def create_classification_dirs():
-    try:
-        os.makedirs(CLASSIFICATION_DIR, exist_ok=True)
-        os.makedirs(os.path.join(CLASSIFICATION_DIR, 'fixed'), exist_ok=True)
-        os.makedirs(os.path.join(CLASSIFICATION_DIR, 'random'), exist_ok=True)
-        os.makedirs(os.path.join(CLASSIFICATION_DIR, 'no_class'), exist_ok=True)
-    except OSError as e:
-        log(f'Error: {e}')
-        print('Something went wrong, check the log file for more information')
+MODEL_PATH = './models/classify_scale_medium_v2.pt'
 
-def load_model():
-    try:
-        return YOLO(MODEL_PATH_OBB)
-    except Exception as e:
-        log(f'Error loading models: {e}')
-        print('Something went wrong, check the log file for more information')
-
-def get_image_paths(img_path):
-    try:
-        return [os.path.join(img_path, img) for img in sorted(os.listdir(img_path))]
-    except Exception as e:
-        log(f'Error reading images: {e}')
-        print('Something went wrong, check the log file for more information')
-
-def remove_old_runs():
-    try:
-        shutil.rmtree(os.path.join(settings['runs_dir'], 'obb'), ignore_errors=True)
-    except Exception as e:
-        log(f'Error removing old runs: {e}')
-        print('Something went wrong, check the log file for more information')
-
-def predict_images(model, images):
-    try:
-        return model(images, conf=0.8, verbose=False)  # conf=0.8: only images with a confidence of 80% or more
-    except Exception as e:
-        log(f'Error predicting images: {e}')
-        print('Something went wrong, check the log file for more information')
 
 def move_images(results):
     for result in results:
-        try:
-            class_label = result.obb.cls  # tensor with 1 item if detected, no item if not detected
-            path = result.path
-            if len(class_label) > 0:
-                if class_label[0] == 0:
-                    shutil.move(path, os.path.join(CLASSIFICATION_DIR, 'fixed', os.path.basename(path)))
-                elif class_label[0] == 1:
-                    shutil.move(path, os.path.join(CLASSIFICATION_DIR, 'random', os.path.basename(path)))
-            else:
-                shutil.move(path, os.path.join(CLASSIFICATION_DIR, 'no_class', os.path.basename(path)))
-        except Exception as e:
-            log(f'Error moving images: {e}')
-            print('Something went wrong, check the log file for more information')
+        for res in result:
+            cls_size = res.boxes.cls.cpu().numpy().size
+            cls_first = res.boxes.cls.cpu().numpy()[0] if cls_size else None
 
-def remove_old_directories():
-    try:
-        shutil.rmtree(IMG_PATH_FIXED)
-        shutil.rmtree(IMG_PATH_RANDOM)
-    except Exception as e:
-        log(f'Error removing old directories: {e}')
-        print('Something went wrong, check the log file for more information')
+            if cls_size == 0:
+                dest_dir = CD_NO_CLASS
+            elif cls_size == 1 and cls_first == 0:
+                dest_dir = CD_FIXED
+            elif cls_size == 1 and cls_first == 1:
+                dest_dir = CD_RANDOM
+            else:
+                continue 
+
+            shutil.move(res.path, os.path.join(dest_dir, os.path.basename(res.path)))
+
 
 def main():
-    create_classification_dirs()
-    model_obb = load_model()
-    all_images_fixed = get_image_paths(IMG_PATH_FIXED)
-    all_images_random = get_image_paths(IMG_PATH_RANDOM)
-    combined_images = all_images_fixed + all_images_random
-    remove_old_runs()
-    if len(combined_images) > 50:
-        for i in range(0, len(combined_images), 50):
-            results = predict_images(model_obb, combined_images[i:i+50])
-            move_images(results)
-            torch.cuda.empty_cache()
-    else:
-        results = predict_images(model_obb, combined_images)
+
+    try:
+        check_directory(CLASSIFICATION_DIR)
+        check_directory(CD_FIXED)
+        check_directory(CD_RANDOM)
+        check_directory(CD_NO_CLASS)
+    except Exception as e:
+        log(f'Error creating directories: {e}', FILENAME)
+
+    try:
+        model = load_model(MODEL_PATH)
+    except Exception as e:
+        log(f'Error loading model: {e}', FILENAME)
+    
+    try:
+        images = get_image_paths(IMG_PATH)
+    except Exception as e:
+        log(f'Error getting image paths: {e}', FILENAME)
+    
+    try:
+        remove_old_runs('detect')
+    except Exception as e:
+        log(f'Error removing old runs: {e}', FILENAME)
+    
+    try:
+        results = predict(model, images) # results is a list of lists, each list contains the results of a batch of images
         move_images(results)
-    remove_old_directories()
+    except Exception as e:
+        log(f'Error classifying images: {e}', FILENAME)
+    
+    try:
+        remove_old_directories([IMG_PATH])
+    except Exception as e:
+        log(f'Error removing old directories: {e}', FILENAME)
+
+    log('Classification complete.', FILENAME)
+
 
 if __name__ == '__main__':
     main()

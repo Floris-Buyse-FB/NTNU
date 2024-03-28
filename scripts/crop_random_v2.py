@@ -10,6 +10,7 @@ import argparse
 
 # CONSTANTS
 SAVE_DIR_RANDOM = './images/cropped_scales/random'
+IMG_DIR_RANDOM = './images/classification/random'
 MODEL_PATH_OBB = './models/crop_random_scale.pt'
 
 
@@ -87,20 +88,22 @@ def predict_and_crop_image(image_path, conf):
     cropped_image_path = os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only.jpg'))
     cv2.imwrite(cropped_image_path, cropped_image)
     print(f'Saved cropped image to {cropped_image_path}')
+    # move the original image to the cropped folder
+    shutil.move(image_path, os.path.join(SAVE_DIR_RANDOM, image_name))
     # load_image(cropped_image_path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save=True, save_path=os.path.join(SAVE_DIR_RANDOM, image_name.replace('.jpg', '_scale_only_grid.jpg')))
 
 
 def main(conf):
-    # Get a list of all image files in the SAVE_DIR_RANDOM directory
-    image_files = [f for f in os.listdir(SAVE_DIR_RANDOM) if f.endswith('.jpg') and '_scale_only' not in f and '_grid' not in f]
-    image_files = [f for f in image_files if not os.path.exists(os.path.join(SAVE_DIR_RANDOM, f.replace('.jpg', '_scale_only.jpg')))]
+    # Get a list of all image files in the IMG_DIR_RANDOM directory
+    image_files = [f for f in os.listdir(IMG_DIR_RANDOM) if f.endswith('.jpg') and '_scale_only' not in f and '_grid' not in f]
+    image_files = [f for f in image_files if not os.path.exists(os.path.join(IMG_DIR_RANDOM, f.replace('.jpg', '_scale_only.jpg')))]
 
     if len(image_files) == 0:
         print('No images to process')
         return
 
     for image_file in image_files:
-        image_path = os.path.join(SAVE_DIR_RANDOM, image_file)
+        image_path = os.path.join(IMG_DIR_RANDOM, image_file)
         cropped_image_path = os.path.join(SAVE_DIR_RANDOM, image_file.replace('.jpg', '_scale_only.jpg'))
         grid_image_path = os.path.join(SAVE_DIR_RANDOM, image_file.replace('.jpg', '_grid.jpg'))
 
