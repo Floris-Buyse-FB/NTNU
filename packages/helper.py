@@ -1,7 +1,10 @@
 import os
-import pandas as pd
+import cv2
 import shutil
+import pandas as pd
+import matplotlib.pyplot as plt
 from ultralytics import YOLO, settings
+
 
 def check_directory(path):
     "Check if a directory exists, if not, create it."
@@ -67,3 +70,19 @@ def predict(model, data: list, batch=22, conf=0.6, iou=0.7, half=True, verbose=T
         res = model(data, conf=conf, iou=iou, half=half, verbose=verbose, classes=classes, save=save, retina_masks=retina_masks, \
                  save_crop=save_crop, save_txt=save_txt, show_labels=show_labels, show_conf=show_conf, show_boxes=show_boxes, imgsz=imgsz)
         return [res]
+
+
+def load_and_save_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10, x_rotation=0, y_rotation=0, save_path=None):
+    image = cv2.imread(image_path)
+    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    plt.figure(figsize=fig_size)
+    plt.imshow(image_rgb)
+    if grid:
+        plt.grid(color='r', linestyle='-', linewidth=0.5)
+        plt.xticks(range(0, image_rgb.shape[1], x_ticks), rotation=x_rotation)
+        plt.yticks(range(0, image_rgb.shape[0], y_ticks), rotation=y_rotation)
+    if save_path is None:
+        pass
+    else:
+        plt.savefig(save_path, bbox_inches='tight', transparent=True)
+    plt.close()

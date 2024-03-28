@@ -1,127 +1,87 @@
-from ultralytics import YOLO, settings
-import os
+from packages import log, check_directory, remove_old_runs, load_model, predict, get_image_paths, remove_old_directories
+from ultralytics import settings
 import shutil
-import cv2
-import matplotlib.pyplot as plt
-from packages import log
-import argparse
+import os
+
 
 # CONSTANTS
-IMG_PATH_FIXED = './images/classification/fixed'
-MODEL_PATH_NO_OBB = './models/crop_fixed_scale.pt'
-SAVE_DIR_FIXED = './images/cropped_scales/fixed'
+IMG_PATH = './images/classification/fixed'
+SAVE_DIR = './images/cropped_scales/fixed'
+FILENAME = os.path.basename(__file__)
+
+MODEL_PATH = './models/crop_fixed_scale.pt'
+
 settings.update({'runs_dir': rf'/home/floris/Projects/NTNU/models/runs'})
 RUNS_DIR = settings['runs_dir']
-NO_OBB_PREDICT_PATH = os.path.join(RUNS_DIR, 'detect/predict/crops/scale_fixed')
+PREDICT_PATH = os.path.join(RUNS_DIR, 'detect/predict/crops/scale_fixed')
 
-def create_directory(directory):
-    try:
-        os.makedirs(directory, exist_ok=True)
-    except OSError as e:
-        log(f'Error: {e}')
-        print('Something went wrong, check the log file for more information')
 
-def crop_scale_fixed(images: list):
-    model_no_obb = YOLO(MODEL_PATH_NO_OBB)
-    # remove old runs
-    old_run_path = os.path.join(RUNS_DIR, 'detect/predict')
-    if os.path.exists(old_run_path):
-        shutil.rmtree(old_run_path, ignore_errors=True)
-    # predict images
-    results_fixed = model_no_obb(images, conf=0.8, save_crop=True, verbose=True)
-    # rename and move images to save dir
-    predictions = os.listdir(NO_OBB_PREDICT_PATH)
-    name_label = True if 'labels.jpg' in predictions else False
+def process_results(results, name_label, cropped_scales):
     if name_label:
-        for idx, result in enumerate(results_fixed):
-                new_name = result.path.split("/")[-1].replace('.jpg', '_scale_only.jpg')
-                if idx == 0:
-                    os.rename(os.path.join(NO_OBB_PREDICT_PATH, 'labels.jpg'), os.path.join(NO_OBB_PREDICT_PATH, new_name))
-                    shutil.move(os.path.join(NO_OBB_PREDICT_PATH, new_name), SAVE_DIR_FIXED)
-                else:
-                    os.rename(os.path.join(NO_OBB_PREDICT_PATH, f'labels{idx+1}.jpg'), os.path.join(NO_OBB_PREDICT_PATH, new_name))
-                    shutil.move(os.path.join(NO_OBB_PREDICT_PATH, new_name), SAVE_DIR_FIXED)
+        for idx, result in enumerate(results):
+            new_name = result.path.split('/')[-1].replace('.jpg', '_scale_only.jpg')
+            if idx == 0:
+                os.rename(os.path.join(PREDICT_PATH, 'labels.jpg'), os.path.join(PREDICT_PATH, new_name))
+                shutil.move(os.path.join(PREDICT_PATH, new_name), SAVE_DIR)
+            else:
+                os.rename(os.path.join(PREDICT_PATH, f'labels{idx+1}.jpg'), os.path.join(PREDICT_PATH, new_name))
+                shutil.move(os.path.join(PREDICT_PATH, new_name), SAVE_DIR)
     else:
-        for pred in predictions:
+        for pred in cropped_scales:
             if pred.endswith('.jpg') and 'label' not in pred:
                 image_name = pred.replace('.jpg', '_scale_only.jpg')
-                os.rename(os.path.join(NO_OBB_PREDICT_PATH, pred), os.path.join(NO_OBB_PREDICT_PATH, image_name))
-                shutil.move(os.path.join(NO_OBB_PREDICT_PATH, image_name), SAVE_DIR_FIXED)
-            
-    return results_fixed
+                os.rename(os.path.join(PREDICT_PATH, pred), os.path.join(PREDICT_PATH, image_name))
+                shutil.move(os.path.join(PREDICT_PATH, image_name), SAVE_DIR)
 
-def load_and_save_image(image_path, fig_size=(50, 50), grid=False, x_ticks=30, y_ticks=10, x_rotation=0, y_rotation=0, save_path=None):
-    # Load the image
-    image = cv2.imread(image_path)
-    # Convert the image from BGR to RGB (matplotlib uses RGB)
-    image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    # Create a figure with a specific size
-    plt.figure(figsize=fig_size)
-    # Show the image
-    plt.imshow(image_rgb)
-    if grid:
-        # Add grid lines to the image for easier measurement
-        plt.grid(color='r', linestyle='-', linewidth=0.5)
-        # Customize the ticks to match your image's scale
-        plt.xticks(range(0, image_rgb.shape[1], x_ticks), rotation=x_rotation)
-        plt.yticks(range(0, image_rgb.shape[0], y_ticks), rotation=y_rotation)
-    if save_path is None:
-        save_path = image_path.split('/')[-1]
-    plt.savefig(save_path, bbox_inches='tight', transparent=True)
-    plt.close()
 
-def process_images(batch_size=22):
-    create_directory(SAVE_DIR_FIXED)
+def main():
+    try:
+        check_directory(SAVE_DIR)
+    except Exception as e:
+        log(f'Error creating directory: {e}', FILENAME)
     
     try:
-        all_images = os.listdir(IMG_PATH_FIXED)
-        images = [os.path.join(IMG_PATH_FIXED, img).replace('\\', '/') for img in all_images]
-        if len(images) > batch_size:
-            for i in range(0, len(images), batch_size):
-                batch = images[i:i+batch_size]
-                crop_scale_fixed(batch)
-        else:
-            crop_scale_fixed(images)
+        model = load_model(MODEL_PATH)
     except Exception as e:
-        log(f'Error cropping images: {e}')
-        print('Something went wrong, check the log file for more information')
-        return
+        log(f'Error loading model: {e}', FILENAME)
     
-    ## Add grid to images
-    # try:
-    #     for result in results:
-    #         save_path = os.path.join(SAVE_DIR_FIXED, result.path.split('/')[-1].replace('.jpg', '_grid.jpg'))
-    #         load_and_save_image(result.path, grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save_path=save_path)
-    # except Exception as e:
-    #     log(f'Error adding grid to images: {e}')
-    #     print('Something went wrong, check the log file for more information')
+    try:
+        images = get_image_paths(IMG_PATH)
+    except Exception as e:
+        log(f'Error getting image paths: {e}', FILENAME)
+
+    try:
+        remove_old_runs('detect')
+    except Exception as e:
+        log(f'Error removing old runs: {e}', FILENAME)
     
-    # Move original images to save dir
+    try:
+        results = predict(model, images, conf=0.8, save_crop=True, verbose=True)
+    except Exception as e:
+        log(f'Error predicting: {e}', FILENAME)
+
+    try:
+        cropped_scales = os.listdir(PREDICT_PATH)
+        name_label = True if 'labels.jpg' in cropped_scales else False
+    except Exception as e:
+        log(f'Error checking if the cropped images are called label or their gbifID: {e}', FILENAME)
+
+    try:
+        process_results(results, name_label, cropped_scales)
+    except Exception as e:
+        log(f'Error processing results: {e}', FILENAME)
+    
     try:
         for img in images:
-            shutil.move(img, SAVE_DIR_FIXED)
+            shutil.move(img, os.path.join(SAVE_DIR, os.path.basename(img)))
     except Exception as e:
-        log(f'Error moving original images: {e}')
-        print('Something went wrong, check the log file for more information')
-    
-    # # Add grid to cropped images
-    # try:
-    #     for scale in os.listdir(SAVE_DIR_FIXED):
-    #         if scale.endswith('_scale_only.jpg'):
-    #             save_path = os.path.join(SAVE_DIR_FIXED, scale.replace('_scale_only.jpg', '_scale_only_grid.jpg'))
-    #             load_and_save_image(os.path.join(SAVE_DIR_FIXED, scale), grid=True, x_ticks=120, y_ticks=10, x_rotation=90, y_rotation=0, save_path=save_path)
-    # except Exception as e:
-    #     log(f'Error adding grid to cropped images: {e}')
-    #     print('Something went wrong, check the log file for more information')
+        log(f'Error moving original images: {e}', FILENAME)
     
     try:
-        shutil.rmtree(IMG_PATH_FIXED)
+        remove_old_directories([IMG_PATH, PREDICT_PATH])
     except Exception as e:
-        log(f'Error removing old images: {e}')
-        print('Something went wrong, check the log file for more information')
+        log(f'Error removing old directories: {e}', FILENAME)
+
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Crop fixed scale images')
-    parser.add_argument('-b', '--batch_size', type=int, default=22, help='Number of images to process at once')
-    args = parser.parse_args()
-    process_images(args.batch_size)
+    main()
