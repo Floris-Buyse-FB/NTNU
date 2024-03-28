@@ -1,4 +1,4 @@
-from packages import log, check_directory, get_image_paths, load_model, remove_old_directories, remove_old_runs, predict
+from packages import log, check_directory, get_image_paths, load_model, remove_old_directories, remove_old_runs, predict, width_length_difference
 from ultralytics import settings
 import numpy as np
 import shutil
@@ -15,25 +15,6 @@ MODEL_PATH= './models/crop_random_scale.pt'
 
 RUNS_DIR = settings['runs_dir']
 PREDICT_PATH = os.path.join(RUNS_DIR, 'obb/predict')
-
-
-def distance(p1, p2):
-    """Calculate the Euclidean distance between two points."""
-    return ((p1 - p2) ** 2).sum().sqrt()
-
-
-def width_length_difference(box):
-    """Calculate the width and length of a bounding box and return their difference."""
-    # Calculate lengths of all sides: AB, BC, CD, DA
-    sides = torch.tensor([
-        distance(box[0], box[1]),
-        distance(box[1], box[2]),
-        distance(box[2], box[3]),
-        distance(box[3], box[0])
-    ])
-    # The length is the maximum of the four sides, and width is the second maximum (considering a rotated box)
-    length, width = sides.topk(2).values
-    return abs(length - width)
 
 
 def process_results(results):
