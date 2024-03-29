@@ -16,6 +16,8 @@ FILENAME = os.path.basename(__file__)
 
 def split_data_get_ids(data, year):
     scale_random = list(data[data['year'] > year]['gbifID'])
+    if len(scale_random) == 0:
+        log(f'Warning: No data after {year} found', FILENAME)
     scale_fixed = list(data[data['year'] <= year]['gbifID'])
     return scale_random, scale_fixed
 

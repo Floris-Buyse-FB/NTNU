@@ -22,6 +22,23 @@ if [ -z "$1" ]; then
     echo "= No argument for n_images provided. Using default value: 20 ="
     echo "=============================================================="
     n_images=20
+elif ! [[ "$1" =~ ^[0-9]+$ ]]; then
+    echo "===================================================="
+    echo "= Invalid argument for n_images provided. Exiting. ="
+    echo "===================================================="
+    exit 1
+# if the amount of images is greater than 50, ask the user if they want to continue (y/n) and warn them that the system may run out of memory
+elif [ "$1" -gt 50 ]; then
+    read -p "Warning: The system may run out of memory. Do you want to continue? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        n_images=$1
+    else
+        echo "==========="
+        echo "= Exiting ="
+        echo "==========="
+        exit 1
+    fi
 else
     n_images=$1
 fi
