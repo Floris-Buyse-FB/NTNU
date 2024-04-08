@@ -49,6 +49,7 @@ chmod +x ./scripts/classify_images.py
 chmod +x ./scripts/crop_fixed_scales.py
 chmod +x ./scripts/crop_random_scales.py
 chmod +x ./scripts/crop_random_v2.py
+chmod +x ./scripts/segment_v2.py
 
 # Run download command with n_images argument
 python3 ./scripts/download_images.py --n_images=$n_images
@@ -97,7 +98,43 @@ echo "================================================"
 echo "= Cropped random scales images successfully.  ="
 echo "================================================"
 
-# Initial cropping with confidence = 0.7
+# Crop fixed images v2 with confidence = 0.7
+python3 ./scripts/crop_fixed_v2.py -c=0.7
+if [ $? -ne 0 ]; then
+    echo "====================================================="
+    echo "= Error cropping fixed undetected scales. Exiting. ="
+    echo "====================================================="
+    exit $?
+fi
+echo "=================================================="
+echo "= Cropped fixed undetected scales successfully. ="
+echo "=================================================="
+
+# Crop fixed images v2 with confidence = 0.6
+python3 ./scripts/crop_fixed_v2.py -c=0.6
+if [ $? -ne 0 ]; then
+    echo "====================================================="
+    echo "= Error cropping fixed undetected scales. Exiting. ="
+    echo "====================================================="
+    exit $?
+fi
+echo "=================================================="
+echo "= Cropped fixed undetected scales successfully. ="
+echo "=================================================="
+
+# Crop fixed images v2 with confidence = 0.5
+python3 ./scripts/crop_fixed_v2.py -c=0.5
+if [ $? -ne 0 ]; then
+    echo "====================================================="
+    echo "= Error cropping fixed undetected scales. Exiting. ="
+    echo "====================================================="
+    exit $?
+fi
+echo "=================================================="
+echo "= Cropped fixed undetected scales successfully. ="
+echo "=================================================="
+
+# Crop random images v2 with confidence = 0.7
 python3 ./scripts/crop_random_v2.py -c=0.7
 if [ $? -ne 0 ]; then
     echo "====================================================="
@@ -109,7 +146,7 @@ echo "=================================================="
 echo "= Cropped random undetected scales successfully. ="
 echo "=================================================="
 
-# Initial cropping with confidence = 0.6
+# Crop random images v2 with confidence = 0.6
 python3 ./scripts/crop_random_v2.py -c=0.6
 if [ $? -ne 0 ]; then
     echo "====================================================="
@@ -121,7 +158,7 @@ echo "=================================================="
 echo "= Cropped random undetected scales successfully. ="
 echo "=================================================="
 
-# Initial cropping with confidence = 0.5
+# Crop random images v2 with confidence = 0.5
 python3 ./scripts/crop_random_v2.py -c=0.5
 if [ $? -ne 0 ]; then
     echo "====================================================="
@@ -132,6 +169,18 @@ fi
 echo "=================================================="
 echo "= Cropped random undetected scales successfully. ="
 echo "=================================================="
+
+# Execute the segmentation script
+python3 ./scripts/segment_v2.py
+if [ $? -ne 0 ]; then
+    echo "====================================="
+    echo "= Error segmenting images. Exiting. ="
+    echo "====================================="
+    exit $?
+fi
+echo "====================================="
+echo "= Segmented images successfully.    ="
+echo "====================================="
 
 # Deactivate environment and finish
 deactivate
