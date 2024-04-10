@@ -49,37 +49,38 @@ def download_img(url_id_pair, save_path):
         raise SystemExit 
 
 
-def main(id):
+def main(ids):
     check_directory(SAVE_PATH)
     check_directory(IMG_DIR)
     check_directory(DATA_DIR)
-
-    try:
-        img_json = get_img_json(id)
-    except Exception as e:
-        log(f'Error getting image json: {e}')
-        print('Something went wrong, check the log file for more information')
-        raise SystemExit 
     
-    try:
-        img_links = get_img_links(img_json)
-    except Exception as e:
-        log(f'Error getting image links: {e}')
-        print('Something went wrong, check the log file for more information')
-        print(e)
-        raise SystemExit 
+    for id in ids:
+        try:
+            img_json = get_img_json(id)
+        except Exception as e:
+            log(f'Error getting image json: {e}')
+            print('Something went wrong, check the log file for more information')
+            raise SystemExit 
+        
+        try:
+            img_links = get_img_links(img_json)
+        except Exception as e:
+            log(f'Error getting image links: {e}')
+            print('Something went wrong, check the log file for more information')
+            print(e)
+            raise SystemExit 
 
-    try:
-        for link in img_links:
-            download_img(link, SAVE_PATH)
-    except Exception as e:
-        log(f'Error downloading image: {e}')
-        print('Something went wrong, check the log file for more information')
-        raise SystemExit
+        try:
+            for link in img_links:
+                download_img(link, SAVE_PATH)
+        except Exception as e:
+            log(f'Error downloading image: {e}')
+            print('Something went wrong, check the log file for more information')
+            raise SystemExit
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Download images from GBIF")
-    parser.add_argument('-i', '--id', type=int, help="The GBIF ID of the species to download images for.")
+    parser.add_argument('ids', type=int, metavar='N', nargs='+', help="The GBIF ID of the species to download images for. (Has to be a list, even if it's just one ID)")
     args = parser.parse_args()
-    main(args.id)
+    main(args.ids)

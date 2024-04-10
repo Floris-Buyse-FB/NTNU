@@ -135,7 +135,7 @@ def apply_crop_mask(image, mask, box):
         images.append((m_img, crop_img))
     return images
 
-def find_dominant_color(image, k=3):
+def find_dominant_color(image, k=5):
     # Convert image to numpy array
     img_array = np.array(image)
     # Reshape it to a list of RGB values
