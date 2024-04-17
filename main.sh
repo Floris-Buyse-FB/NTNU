@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Get the directory of the current script
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 PACKAGE_DIR="$SCRIPT_DIR/packages"
 
 # Export PYTHONPATH
@@ -16,52 +16,51 @@ if [ $? -ne 0 ]; then
     exit $?
 fi
 
-# Check if n_images argument is provided
-if [ -z "$1" ]; then
-    echo "=============================================================="
-    echo "= No argument for n_images provided. Using default value: 20 ="
-    echo "=============================================================="
-    n_images=20
-elif ! [[ "$1" =~ ^[0-9]+$ ]]; then
-    echo "===================================================="
-    echo "= Invalid argument for n_images provided. Exiting. ="
-    echo "===================================================="
-    exit 1
-# if the amount of images is greater than 50, ask the user if they want to continue (y/n) and warn them that the system may run out of memory
-elif [ "$1" -gt 50 ]; then
-    read -p "Warning: The system may run out of memory. Do you want to continue? (y/n) " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        n_images=$1
-    else
-        echo "==========="
-        echo "= Exiting ="
-        echo "==========="
+# Present options for downloading images
+echo "Select the download mode:"
+echo "1) Download random images"
+echo "2) Download images by specifying GBIF IDs"
+read -p "Enter your choice (1 or 2): " download_choice
+if [ "$download_choice" == "1" ]; then
+    read -p "Enter the number of images to download (default 20, max 50): " n_images
+    n_images=${n_images:-20} # Default to 20 if no input
+    if ! [[ "$n_images" =~ ^[0-9]+$ ]]; then
+        echo "Invalid number provided. Exiting."
+        exit 1
+    elif [ "$n_images" -gt 50 ]; then
+        read -p "Warning: Requesting more than 50 images may cause memory issues. Continue? (y/n): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Exiting."
+            exit 1
+        fi
+    fi
+
+    # Run download command with n_images argument
+    python3 ./scripts/download_images_v2.py -r -n "$n_images"
+elif [ "$download_choice" == "2" ]; then
+    read -p "Enter GBIF IDs separated by space: " -a gbif_ids
+    if [ ${#gbif_ids[@]} -eq 0 ]; then
+        echo "No GBIF IDs entered. Exiting."
         exit 1
     fi
+    python3 ./scripts/download_images_v2.py -i "${gbif_ids[@]}"
 else
-    n_images=$1
+    echo "Invalid choice. Exiting."
+    exit 1
 fi
-
-# Ensure scripts are executable
-chmod +x ./scripts/download_images.py
-chmod +x ./scripts/classify_images.py
-chmod +x ./scripts/crop_fixed_scales.py
-chmod +x ./scripts/crop_random_scales.py
-chmod +x ./scripts/crop_random_v2.py
-chmod +x ./scripts/segment_v2.py
-
-# Run download command with n_images argument
-python3 ./scripts/download_images.py --n_images=$n_images
 if [ $? -ne 0 ]; then
-    echo "======================================"
-    echo "= Error downloading images. Exiting. ="
-    echo "======================================"
+    echo "========================================"
+    echo "= Error in download process. Exiting. ="
+    echo "========================================"
     exit $?
 fi
-echo "==================================="
-echo "= Downloaded images successfully. ="
-echo "==================================="
+echo "=================================="
+echo "= Downloaded images successfully.="
+echo "=================================="
+
+# Ensure scripts are executable
+chmod +x ./scripts/*.py
 
 # Classify
 python3 ./scripts/classify_images.py

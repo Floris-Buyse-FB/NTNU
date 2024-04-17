@@ -16,7 +16,7 @@ torch.cuda.empty_cache()
 CUDA = torch.cuda.is_available()
 print("CUDA is available:", CUDA)
 
-MODEL_PATH_SEGMENT = '/home/floris/Projects/NTNU/models/plant_segmentation_v2.pt'
+MODEL_PATH_SEGMENT = '/home/floris/Projects/NTNU/models/plant_segmentation_v12.pt'
 
 IMG_PATH_FIXED = '/home/floris/Projects/NTNU/images/cropped_scales/fixed'
 IMG_PATH_RANDOM = '/home/floris/Projects/NTNU/images/cropped_scales/random'
@@ -295,10 +295,31 @@ def save_results(path, save_path, range_left=0, range_right=None):
         json_file_name = image_name.replace('.jpg', '.json')
         with open(os.path.join(image_save_path, json_file_name), 'w') as f:
             json.dump(save_dict, f)
-        
-        # move cropped scale image to processed folder
-        scale_only_path = images[idx].replace('.jpg', '_scale_only.jpg')
-        shutil.copy(scale_only_path, image_save_path)
 
-save_results(IMG_PATH_RANDOM, SAVE_PATH_RANDOM, range_left=0, range_right=None)
-save_results(IMG_PATH_FIXED, SAVE_PATH_FIXED, range_left=0, range_right=None)
+
+def move_and_remove_old_dirs(path, save_path):
+    
+        images = get_images(path)
+        
+        for image_path in images:
+            
+            save_dir_path = os.path.join(save_path, os.path.basename(image_path).replace('.jpg', '').replace('_a', '').replace('_b', '').replace('_c', ''))
+            
+            # move cropped scale image to processed folder
+            scale_only_path = image_path.replace('.jpg', '_scale_only.jpg')
+            shutil.move(scale_only_path, save_dir_path)
+            
+            # move original image to processed folder with _original suffix
+            new_image_name_path = os.path.basename(image_path).replace('.jpg', '_original.jpg')
+            os.rename(image_path, new_image_name_path)
+            shutil.move(new_image_name_path, save_dir_path)
+            
+        # remove the cropped scales folder
+        shutil.rmtree(path)
+
+
+if __name__ == '__main__':
+    save_results(IMG_PATH_RANDOM, SAVE_PATH_RANDOM, range_left=0, range_right=None)
+    move_and_remove_old_dirs(IMG_PATH_RANDOM, SAVE_PATH_RANDOM)
+    save_results(IMG_PATH_FIXED, SAVE_PATH_FIXED, range_left=0, range_right=None)
+    move_and_remove_old_dirs(IMG_PATH_FIXED, SAVE_PATH_FIXED)
