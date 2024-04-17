@@ -22,6 +22,7 @@ IMG_PATH_FIXED = '/home/floris/Projects/NTNU/images/cropped_scales/fixed'
 IMG_PATH_RANDOM = '/home/floris/Projects/NTNU/images/cropped_scales/random'
 SAVE_PATH_RANDOM = '/home/floris/Projects/NTNU/data/processed/random'
 SAVE_PATH_FIXED = '/home/floris/Projects/NTNU/data/processed/fixed'
+NO_PROCESS_PATH = '/home/floris/Projects/NTNU/data/could_not_process'
 
 DEVICE = "cuda" if CUDA else "cpu"
 settings.update({'runs_dir': rf'/home/floris/Projects/NTNU/models/runs'})
@@ -262,19 +263,52 @@ def save_results(path, save_path, range_left=0, range_right=None):
         except IndexError:
             
             try:
-                results = get_results(image, images[idx], model_seg, class_name, 0.6, fdc=False)
+                print("Trying to get results with a lower confidence threshold (0.6)")
+                results = get_results(image, images[idx], model_seg, class_name, 0.6, fdc=True)
                 res = results[0]
             except IndexError:
-                print(f"No results found for {os.path.basename(images[idx])}")
-                continue
                 
-        
+                try:
+                    print("Trying to get results with a lower confidence threshold (0.5)")
+                    results = get_results(image, images[idx], model_seg, class_name, 0.5, fdc=True)
+                    res = results[0]
+                except IndexError:
+                    
+                    try:
+                        print("Trying to get results with a lower confidence threshold (0.4)")
+                        results = get_results(image, images[idx], model_seg, class_name, 0.4, fdc=True)
+                        res = results[0]
+                    except IndexError:
+                        
+                        try:
+                            print("Trying to get results with a lower confidence threshold (0.3)")
+                            results = get_results(image, images[idx], model_seg, class_name, 0.3, fdc=True)
+                            res = results[0]
+                        except IndexError:
+                                
+                                try:
+                                    print("Trying to get results with a lower confidence threshold (0.2)")
+                                    results = get_results(image, images[idx], model_seg, class_name, 0.2, fdc=True)
+                                    res = results[0]
+                                except IndexError:
+                                    
+                                    try:
+                                        print("Trying to get results with a lower confidence threshold (0.1)")
+                                        results = get_results(image, images[idx], model_seg, class_name, 0.1, fdc=True)
+                                        res = results[0]
+                                    except IndexError:
+                                        print(f"No results found for {os.path.basename(images[idx])}")
+                                        # move image to a folder with images that could not be processed
+                                        check_directory(NO_PROCESS_PATH)
+                                        shutil.move(images[idx], NO_PROCESS_PATH)
+                                        continue
+                
         image = Image.fromarray(res["image"])
+        
         image_name = os.path.basename(res["image_path"])
-
         image_save_path = os.path.join(save_path, image_name.replace('.jpg', '').replace('_a', '').replace('_b', '').replace('_c', ''))
         check_directory(image_save_path)
-
+        
         image.save(os.path.join(image_save_path, image_name))
 
         save_dict = {"px_per_cm": res["px_per_cm"], "boxes": [], "sq_cm": []}
@@ -288,10 +322,9 @@ def save_results(path, save_path, range_left=0, range_right=None):
             crop = white_to_transparent(mask_crop[1])
             crop_name = image_name.replace('.jpg', f'_crop_{idx2}.png')
             crop.save(os.path.join(image_save_path, crop_name))
-
             area = mask_crop[2]
             save_dict["sq_cm"].append({"id": idx2, "area": area})
-        
+            
         json_file_name = image_name.replace('.jpg', '.json')
         with open(os.path.join(image_save_path, json_file_name), 'w') as f:
             json.dump(save_dict, f)
@@ -323,3 +356,4 @@ if __name__ == '__main__':
     move_and_remove_old_dirs(IMG_PATH_RANDOM, SAVE_PATH_RANDOM)
     save_results(IMG_PATH_FIXED, SAVE_PATH_FIXED, range_left=0, range_right=None)
     move_and_remove_old_dirs(IMG_PATH_FIXED, SAVE_PATH_FIXED)
+    shutil.rmtree('/home/floris/Projects/NTNU/images')

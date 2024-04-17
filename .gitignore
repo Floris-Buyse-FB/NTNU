@@ -161,7 +161,6 @@ cython_debug/
 
 /images/
 
-
 /data/herbarium_data.csv
 /data/herbarium_original_data.csv
 /data/datasets/
@@ -173,4 +172,4 @@ sam_vit_h_4b8939.pth
 
 STAGE-TODO.txt
 
-/notebooks/Tape-segmentation-2
+/data/could_not_process
