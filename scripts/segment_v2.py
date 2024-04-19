@@ -16,7 +16,7 @@ torch.cuda.empty_cache()
 CUDA = torch.cuda.is_available()
 print("CUDA is available:", CUDA)
 
-MODEL_PATH_SEGMENT = '/home/floris/Projects/NTNU/models/plant_segmentation_v12.pt'
+MODEL_PATH_SEGMENT = '/home/floris/Projects/NTNU/models/plant_segmentation_v17.pt'
 
 IMG_PATH_FIXED = '/home/floris/Projects/NTNU/images/cropped_scales/fixed'
 IMG_PATH_RANDOM = '/home/floris/Projects/NTNU/images/cropped_scales/random'
