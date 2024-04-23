@@ -1,10 +1,11 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from packages import log, check_directory, get_data, number_to_letter
 import pandas as pd
 import requests
 import argparse
 import random
 import os
+
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from packages import log, check_directory, get_data, number_to_letter
 
 
 # CONSTANTS
@@ -15,36 +16,77 @@ CPU_COUNT = os.cpu_count()
 FILENAME = os.path.basename(__file__)
 
 
-def split_data_get_ids(data, year):
+def split_data_get_ids(data: pd.DataFrame, year: int) -> tuple:
+    """
+    Split the data based on the year and return two lists of gbifIDs.
+    The year 2014 is used in this script as it is the year where the random scales were introduced.
+
+    Args:
+        data (pd.DataFrame): The input data.
+        year (int): The year to split the data.
+
+    Returns:
+        tuple: A tuple containing two lists of gbifIDs.
+    """
     scale_random = list(data[data['year'] > year]['gbifID'])
     if len(scale_random) == 0:
+        # If there are no gbifIDs after the given year, give a warning
+        # empty list is returned for scale_fixed
         log(f'Warning: No data after {year} found', FILENAME)
     scale_fixed = list(data[data['year'] <= year]['gbifID'])
     return scale_random, scale_fixed
 
 
-def get_img_json(ids, n_samples=None):
+def get_img_json(ids: list, n_samples=None) -> list:
+    """
+    Get the JSON data for the given gbifIDs.
+    n_samples is used to randomly sample the gbifIDs. 
+    If n_samples is None, all the given gbifIDs are used.
+
+    Args:
+        ids (list): List of gbifIDs.
+        n_samples (int, optional): Number of samples to retrieve. Defaults to None.
+
+    Returns:
+        list: List of JSON data for the images.
+    """
     if n_samples is not None:
+        # Randomly sample the gbifIDs
         n_samples = min(n_samples, len(ids))
         random_list = random.sample(ids, n_samples)
         random_list = sorted(random_list)
+        
+        # Remove the sampled gbifIDs from the CSV file
         gbif_ids = pd.read_csv(os.path.join(DATA_DIR, 'clean_data.csv'), sep=',')
         gbif_ids = gbif_ids[~gbif_ids['gbifID'].isin(random_list)]
         gbif_ids.to_csv(os.path.join(DATA_DIR, 'clean_data.csv'), sep=',', index=False)
         ids = random_list
 
+    # Get the JSON data for the gbifIDs using ThreadPoolExecutor for parallel processing
     with ThreadPoolExecutor(max_workers=CPU_COUNT) as executor:
         results = list(executor.map(lambda x: requests.get(f"https://api.gbif.org/v1/occurrence/{x}").json(), ids))
     return results
 
 
-def get_img_links(img_json):
+def get_img_links(img_json: list) -> list:
+    """
+    Get the image links from the JSON data.
+
+    Args:
+        img_json (list): List of JSON data for the images.
+
+    Returns:
+        list: List of tuples containing the image links and corresponding names.
+    """
     links = []
+    # loop over the list of JSON data and get the image links
     for img in img_json:
         list_with_img_links = img['extensions']['http://rs.gbif.org/terms/1.0/Multimedia']
         gbifId = img['gbifID']
+        # this loop is to check for multiple images for a single gbifID
         for idx, link in enumerate(list_with_img_links):
             if len(list_with_img_links) > 1:
+                # adds a letter to the name if there are multiple images for a single gbifID (a, b, c, ...)
                 name = f'{gbifId}_{number_to_letter(idx+1)}'
                 links.append((link['http://purl.org/dc/terms/identifier'], name))
             else:
@@ -52,9 +94,21 @@ def get_img_links(img_json):
     return links
 
 
-def download_img(url_id_pair, save_path):
-    img_url, gbif_id = url_id_pair
+def download_img(url_id_pair: tuple, save_path: str) -> None:
+    """
+    Download the image from the given URL and save it to the specified path.
+
+    Args:
+        url_id_pair (tuple): Tuple containing the image URL and corresponding gbifID.
+        save_path (str): Path to save the downloaded image.
+    
+    Returns:
+        None
+    """
+    # unpack the tuple
+    img_url, gbif_id = url_id_pair # gbif_id is the name of the image (could be the gbifID or gbifID_a, gbifID_b, ...)
     try:
+        # download the image
         response = requests.get(img_url, timeout=10)
         response.raise_for_status()
         file_path = os.path.join(save_path, f"{gbif_id}.jpg")
@@ -65,32 +119,61 @@ def download_img(url_id_pair, save_path):
         raise SystemExit
 
 
-def download_images(url_id_pairs, save_path):
+def download_images(url_id_pairs: list, save_path: str) -> None:
+    """
+    Download the images from the given URLs and save them to the specified path.
+
+    Args:
+        url_id_pairs (list): List of tuples containing the image URLs and corresponding gbifIDs.
+        save_path (str): Path to save the downloaded images.
+        
+    Returns:
+        None
+    """
+    # Download the images using ThreadPoolExecutor for parallel processing
     with ThreadPoolExecutor(max_workers=CPU_COUNT) as executor:
+        # uses the download_img function to download the images
         futures = [executor.submit(download_img, pair, save_path) for pair in url_id_pairs]
         for future in as_completed(futures):
             future.result()
-            
 
-def main(ids=None, n_images=33, random=True):
+
+def main(ids=None, n_images=33, random=True) -> None:
+    """
+    Main function to download images from the GBIF API.
+
+    Args:
+        ids (list, optional): List of gbifIDs to download images for. Defaults to None.
+        n_images (int, optional): Number of images to download for each category. Defaults to 33.
+        random (bool, optional): Flag to download images randomly from the CSV file. Defaults to True.
+        
+    Returns:
+        None
+    """
+    
+    # Function to check if the directories exist and create them if they don't
     check_directory(SAVE_PATH)
     check_directory(IMG_DIR)
     check_directory(DATA_DIR)
 
+    # If random is True, download images randomly from the CSV file
     if random:
         try:
+            # Retrieve the data from the CSV file
             data = get_data(os.path.join(DATA_DIR, 'clean_data.csv'), ',')
         except Exception as e:
             log(f'Error reading data: {e}', FILENAME)
             raise SystemExit
 
         try:
+            # Split the data based on the year
             scale_random, scale_fixed = split_data_get_ids(data, 2014)
         except Exception as e:
             log(f'Error splitting data: {e}', FILENAME)
             raise SystemExit
 
         try:
+            # Get the JSON data for the gbifIDs
             scale_random_json = get_img_json(scale_random, n_samples=n_images)
             scale_fixed_json = get_img_json(scale_fixed, n_samples=n_images)
         except Exception as e:
@@ -98,6 +181,7 @@ def main(ids=None, n_images=33, random=True):
             raise SystemExit
 
         try:
+            # Get the image links from the JSON data
             scale_random_links = get_img_links(scale_random_json)
             scale_fixed_links = get_img_links(scale_fixed_json)
         except Exception as e:
@@ -105,11 +189,14 @@ def main(ids=None, n_images=33, random=True):
             raise SystemExit
 
         try:
+            # Download the images
             download_images(scale_random_links, SAVE_PATH)
             download_images(scale_fixed_links, SAVE_PATH)
         except Exception as e:
             log(f'Error downloading images: {e}', FILENAME)
             raise SystemExit
+    
+    # If random is False, download images for the given gbifIDs
     else:
         try:
             img_json = get_img_json(ids)
@@ -128,6 +215,7 @@ def main(ids=None, n_images=33, random=True):
         except Exception as e:
             log(f'Error downloading images: {e}', FILENAME)
             raise SystemExit
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Download images from GBIF API')
