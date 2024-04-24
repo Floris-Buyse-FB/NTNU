@@ -2,6 +2,7 @@ import pandas as pd
 import requests
 import argparse
 import random
+import json
 import os
 
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -12,6 +13,7 @@ from packages import log, check_directory, get_data, number_to_letter
 IMG_DIR = './images'
 DATA_DIR = './data'
 SAVE_PATH = os.path.join(IMG_DIR, 'gbif_images')
+URL_SAVE_PATH = os.path.join(DATA_DIR, 'image_urls.json')
 CPU_COUNT = os.cpu_count()
 FILENAME = os.path.basename(__file__)
 
@@ -92,6 +94,31 @@ def get_img_links(img_json: list) -> list:
             else:
                 links.append((link['http://purl.org/dc/terms/identifier'], gbifId))
     return links
+
+
+def save_urls_to_json(url_id_pairs: list) -> None:
+    """
+    Save the image URLs to a JSON file.
+
+    Args:
+        url_id_pairs (list): List of tuples containing the image URLs and corresponding names.
+        
+    Returns:
+        None
+    """
+    # Create a dictionary from the list of tuples
+    data = {id_: url for url, id_ in url_id_pairs}
+    
+    # Check if the file exists
+    if not os.path.exists(URL_SAVE_PATH):
+        # create an empty file
+        with open(URL_SAVE_PATH, 'w') as file:
+            pass
+    
+    # Open a file in write mode
+    with open(URL_SAVE_PATH, 'a') as file:
+        # Write the dictionary to file in JSON format
+        json.dump(data, file, indent=4)
 
 
 def download_img(url_id_pair: tuple, save_path: str) -> None:
@@ -187,6 +214,17 @@ def main(ids=None, n_images=33, random=True) -> None:
         except Exception as e:
             log(f'Error getting image links: {e}', FILENAME)
             raise SystemExit
+        
+        try:
+            # combine the image links
+            img_links = scale_random_links + scale_fixed_links
+            
+            # Save the image URLs to a JSON file
+            save_urls_to_json(img_links)
+            
+        except Exception as e:
+            log(f'Error saving URLs to JSON: {e}', FILENAME)
+            raise SystemExit
 
         try:
             # Download the images
@@ -208,6 +246,12 @@ def main(ids=None, n_images=33, random=True) -> None:
             img_links = get_img_links(img_json)
         except Exception as e:
             log(f'Error getting image links: {e}', FILENAME)
+            raise SystemExit
+        
+        try:
+            save_urls_to_json(img_links)
+        except Exception as e:
+            log(f'Error saving URLs to JSON: {e}', FILENAME)
             raise SystemExit
 
         try:

@@ -19,13 +19,14 @@ CUDA = torch.cuda.is_available()
 print("CUDA is available:", CUDA)
 
 # CONSTANTS
-MODEL_PATH_SEGMENT = '/home/floris/Projects/NTNU/models/plant_segmentation_v17.pt'
+MODEL_PATH_SEGMENT = '/home/floris/Projects/NTNU/models/plant_segmentation_v20_best.pt'
 
 IMG_PATH_FIXED = '/home/floris/Projects/NTNU/images/cropped_scales/fixed'
 IMG_PATH_RANDOM = '/home/floris/Projects/NTNU/images/cropped_scales/random'
 SAVE_PATH_RANDOM = '/home/floris/Projects/NTNU/data/processed/random'
 SAVE_PATH_FIXED = '/home/floris/Projects/NTNU/data/processed/fixed'
 NO_PROCESS_PATH = '/home/floris/Projects/NTNU/data/could_not_process'
+URL_PATH = '/home/floris/Projects/NTNU/data/image_urls.json'
 
 DEVICE = "cuda" if CUDA else "cpu"
 
@@ -581,8 +582,12 @@ def save_results(path: str, save_path: str, range_left: int = 0, range_right: in
         # Save the image
         image.save(os.path.join(image_save_path, image_name))
 
+        # Open the image_urls.json file and load the corresponding image URL
+        with open(URL_PATH, 'r') as f:
+            urls = json.load(f)
+        
         # Define the dictionary to save as a JSON file
-        save_dict = {"px_per_cm": res["px_per_cm"], "boxes": [], "sq_cm": []}
+        save_dict = {"px_per_cm": res["px_per_cm"], "boxes": [], "sq_cm": [], "img_url": urls[image_name[:-4]]}
 
         # Loop over the boxes and save the width and height in cm
         for idx, box in enumerate(res["boxes"]):
@@ -653,3 +658,6 @@ if __name__ == '__main__':
     
     # remove the images folder
     shutil.rmtree('/home/floris/Projects/NTNU/images')
+    
+    # remove the urls file
+    os.remove(URL_PATH)

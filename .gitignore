@@ -176,6 +176,6 @@ STAGE-TODO.txt
 /data/Ntnu*
 /data/upload
 /data/dataset
-/data/dataset.zip
+/data/dataset_*.zip
 /data/to_edit
 /notebooks/test_*
