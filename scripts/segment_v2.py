@@ -8,7 +8,7 @@ import json
 import cv2
 import os
 
-from ultralytics import YOLO, settings
+from ultralytics import YOLO
 from packages import check_directory
 from sklearn.cluster import KMeans
 from PIL import Image
@@ -19,19 +19,16 @@ CUDA = torch.cuda.is_available()
 print("CUDA is available:", CUDA)
 
 # CONSTANTS
-MODEL_PATH_SEGMENT = '/home/floris/Projects/NTNU/models/plant_segmentation_v20_best.pt'
+MODEL_PATH_SEGMENT = './models/plant_segmentation_v20_best.pt'
 
-IMG_PATH_FIXED = '/home/floris/Projects/NTNU/images/cropped_scales/fixed'
-IMG_PATH_RANDOM = '/home/floris/Projects/NTNU/images/cropped_scales/random'
-SAVE_PATH_RANDOM = '/home/floris/Projects/NTNU/data/processed/random'
-SAVE_PATH_FIXED = '/home/floris/Projects/NTNU/data/processed/fixed'
-NO_PROCESS_PATH = '/home/floris/Projects/NTNU/data/could_not_process'
-URL_PATH = '/home/floris/Projects/NTNU/data/image_urls.json'
+IMG_PATH_FIXED = './images/cropped_scales/fixed'
+IMG_PATH_RANDOM = './images/cropped_scales/random'
+SAVE_PATH_RANDOM = './data/processed/random'
+SAVE_PATH_FIXED = './data/processed/fixed'
+NO_PROCESS_PATH = './data/could_not_process'
+URL_PATH = './data/image_urls.json'
 
 DEVICE = "cuda" if CUDA else "cpu"
-
-# Update settings of ultralytics (YOLOv8)
-settings.update({'runs_dir': rf'/home/floris/Projects/NTNU/models/runs'})
 
 # Load the segmentation model
 model_seg = YOLO(MODEL_PATH_SEGMENT)
@@ -416,7 +413,7 @@ def get_results(image: Image, path: str, model: YOLO, _class: str, conf: float, 
     assert _class in ['fixed', 'random'], "Class should be 'fixed' or 'random'"
     
     # Check if the path exists and remove the run path if it exists
-    run_path = '/home/floris/Projects/NTNU/models/runs/segment'
+    run_path = '../models/runs/segment'
     if os.path.exists(run_path):
         shutil.rmtree(run_path)
 
@@ -657,7 +654,7 @@ if __name__ == '__main__':
     move_and_remove_old_dirs(IMG_PATH_FIXED, SAVE_PATH_FIXED)
     
     # remove the images folder
-    shutil.rmtree('/home/floris/Projects/NTNU/images')
+    shutil.rmtree('../images')
     
     # remove the urls file
     os.remove(URL_PATH)

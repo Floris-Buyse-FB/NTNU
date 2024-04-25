@@ -13,8 +13,6 @@ FILENAME = os.path.basename(__file__)
 
 MODEL_PATH = './models/crop_fixed_scale.pt'
 
-# update settings of ultralytics (YOLOv8)
-settings.update({'runs_dir': rf'/home/floris/Projects/NTNU/models/runs'})
 RUNS_DIR = settings['runs_dir']
 PREDICT_PATH = os.path.join(RUNS_DIR, 'detect/predict/crops/scale_fixed')
 

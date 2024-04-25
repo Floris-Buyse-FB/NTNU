@@ -16,6 +16,9 @@ if [ $? -ne 0 ]; then
     exit $?
 fi
 
+# Ensure scripts are executable
+chmod +x ./scripts/*.py
+
 # Present options for downloading images
 echo "Select the download mode:"
 echo "1) Download random images"
@@ -58,9 +61,6 @@ fi
 echo "=================================="
 echo "= Downloaded images successfully.="
 echo "=================================="
-
-# Ensure scripts are executable
-chmod +x ./scripts/*.py
 
 # Classify
 python3 ./scripts/classify_images.py

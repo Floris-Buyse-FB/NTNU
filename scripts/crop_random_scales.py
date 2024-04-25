@@ -16,7 +16,6 @@ FILENAME = os.path.basename(__file__)
 
 MODEL_PATH= './models/crop_random_scale.pt'
 
-# update settings of ultralytics (YOLOv8)
 RUNS_DIR = settings['runs_dir']
 PREDICT_PATH = os.path.join(RUNS_DIR, 'obb/predict')
 

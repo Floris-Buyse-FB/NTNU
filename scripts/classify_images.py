@@ -3,7 +3,7 @@ import os
 
 from packages import log, check_directory, get_image_paths, \
     remove_old_runs, remove_old_directories, load_model, predict
-
+from ultralytics import settings
 
 # CONSTANTS
 IMG_PATH = './images/gbif_images'
@@ -12,6 +12,10 @@ CD_FIXED = os.path.join(CLASSIFICATION_DIR, 'fixed')
 CD_RANDOM = os.path.join(CLASSIFICATION_DIR, 'random')
 CD_NO_CLASS = os.path.join(CLASSIFICATION_DIR, 'no_class')
 FILENAME = os.path.basename(__file__)
+RUNS_DIR = '/home/floris/Projects/NTNU/models/runs'
+
+# update settings of ultralytics (YOLOv8)
+settings.update({'runs_dir': RUNS_DIR})
 
 MODEL_PATH = './models/classify_scale_medium_v2.pt'
 
