@@ -6,6 +6,7 @@ roboflow
 opencv-python
 matplotlib
 scikit-learn
+scikit-image
 torch
 torchvision
 torchaudio
