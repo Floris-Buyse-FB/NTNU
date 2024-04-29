@@ -40,14 +40,14 @@ if [ "$download_choice" == "1" ]; then
     fi
 
     # Run download command with n_images argument
-    python3 ./scripts/download_images_v2.py -r -n "$n_images"
+    python3 ./scripts/download_images_v2.py -r -s -n "$n_images"
 elif [ "$download_choice" == "2" ]; then
     read -p "Enter GBIF IDs separated by space: " -a gbif_ids
     if [ ${#gbif_ids[@]} -eq 0 ]; then
         echo "No GBIF IDs entered. Exiting."
         exit 1
     fi
-    python3 ./scripts/download_images_v2.py -i "${gbif_ids[@]}"
+    python3 ./scripts/download_images_v2.py -s -i "${gbif_ids[@]}"
 else
     echo "Invalid choice. Exiting."
     exit 1

@@ -165,7 +165,7 @@ def download_images(url_id_pairs: list, save_path: str) -> None:
             future.result()
 
 
-def main(ids=None, n_images=33, random=True) -> None:
+def main(ids=None, n_images: int = 33, random: bool = True, save_json: bool = True) -> None:
     """
     Main function to download images from the GBIF API.
 
@@ -215,16 +215,17 @@ def main(ids=None, n_images=33, random=True) -> None:
             log(f'Error getting image links: {e}', FILENAME)
             raise SystemExit
         
-        try:
-            # combine the image links
-            img_links = scale_random_links + scale_fixed_links
-            
-            # Save the image URLs to a JSON file
-            save_urls_to_json(img_links)
-            
-        except Exception as e:
-            log(f'Error saving URLs to JSON: {e}', FILENAME)
-            raise SystemExit
+        if save_json:
+            try:
+                # combine the image links
+                img_links = scale_random_links + scale_fixed_links
+                
+                # Save the image URLs to a JSON file
+                save_urls_to_json(img_links)
+                
+            except Exception as e:
+                log(f'Error saving URLs to JSON: {e}', FILENAME)
+                raise SystemExit
 
         try:
             # Download the images
@@ -248,11 +249,12 @@ def main(ids=None, n_images=33, random=True) -> None:
             log(f'Error getting image links: {e}', FILENAME)
             raise SystemExit
         
-        try:
-            save_urls_to_json(img_links)
-        except Exception as e:
-            log(f'Error saving URLs to JSON: {e}', FILENAME)
-            raise SystemExit
+        if save_json:
+            try:
+                save_urls_to_json(img_links)
+            except Exception as e:
+                log(f'Error saving URLs to JSON: {e}', FILENAME)
+                raise SystemExit
 
         try:
             download_images(img_links, SAVE_PATH)
@@ -266,11 +268,12 @@ if __name__ == '__main__':
     parser.add_argument('-n', '--n_images', type=int, default=33, help='Number of images to download for each category')
     parser.add_argument('-r', '--random', action='store_true', help='Download images randomly from the CSV file')
     parser.add_argument('-i', '--ids', type=int, nargs='+', help='GBIF IDs to download images for')
+    parser.add_argument('-s', '--save_json', action='store_true', help='Save the image URLs to a JSON file')
     args = parser.parse_args()
 
     if args.random:
-        main(n_images=args.n_images, random=True)
+        main(n_images=args.n_images, random=True, save_json=args.save_json)
     else:
         if args.ids is None:
             parser.error('Please provide GBIF IDs using the -i or --ids argument when not using random mode')
-        main(ids=args.ids, random=False)
+        main(ids=args.ids, random=False, save_json=args.save_json)
