@@ -179,3 +179,5 @@ STAGE-TODO.txt
 /data/dataset_*.zip
 /data/to_edit
 /notebooks/test_*
+
+/data/old_dataset_*
