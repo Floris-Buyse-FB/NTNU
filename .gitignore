@@ -181,3 +181,5 @@ STAGE-TODO.txt
 /notebooks/test_*
 
 /data/old_dataset_*
+/notebooks/to_augment
+/notebooks/augmented
