@@ -413,7 +413,7 @@ def get_results(image: Image, path: str, model: YOLO, _class: str, conf: float, 
     assert _class in ['fixed', 'random'], "Class should be 'fixed' or 'random'"
     
     # Check if the path exists and remove the run path if it exists
-    run_path = '../models/runs/segment'
+    run_path = './models/runs/segment'
     if os.path.exists(run_path):
         shutil.rmtree(run_path)
 
@@ -654,7 +654,7 @@ if __name__ == '__main__':
     move_and_remove_old_dirs(IMG_PATH_FIXED, SAVE_PATH_FIXED)
     
     # remove the images folder
-    shutil.rmtree('../images')
+    shutil.rmtree('./images')
     
     # remove the urls file
     os.remove(URL_PATH)
