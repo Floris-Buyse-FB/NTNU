@@ -33,3 +33,7 @@
   - note: without the `.py` extension
   - any arguments can be found using the `-h` flag
 - Note: it is recommended to run the `main.sh` script to avoid any errors
+
+## Dataset
+
+Up-to-date, fully checked dataset available on [Roboflow](https://universe.roboflow.com/ntnuscaledetection/ntnu_herbarium_segmentation_v2)
